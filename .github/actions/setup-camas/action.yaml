@@ -12,14 +12,14 @@ runs:
   using: composite
   steps:
     - name: Install uv
-      shell: bash
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        printf '%s\n' "$HOME/.local/bin" >> "$GITHUB_PATH"
+      uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
 
     - name: Install Go tools
       if: ${{ inputs.go-tools != '' }}
       shell: bash
+      env:
+        GO_TOOLS: ${{ inputs.go-tools }}
       run: |
-        hack/scripts/install-go-tools.sh ${{ inputs.go-tools }}
-        printf '%s\n' "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+        read -ra tools <<< "$GO_TOOLS"
+        hack/scripts/install-go-tools.sh "${tools[@]}"
+        printf '%s\n' "$(go env GOPATH)/bin" >> "$GITHUB_PATH" # zizmor: ignore[github-env]
