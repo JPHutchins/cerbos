@@ -30,10 +30,12 @@ npm/test/registry/storage/
 .DS_Store
 
 .env
+.camas/
+.claude/
 coverage.out
 e2e.cover
 go.work.sum
-integration.cover
+integration.*.cover
 junit.*.xml
 test-times.json
 unit.cover

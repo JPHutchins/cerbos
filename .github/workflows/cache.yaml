@@ -54,11 +54,11 @@ jobs:
           write_deps_cache: true
           write_build_cache: true
 
-      - name: Install just
-        uses: cerbos/actions/install-tools@52f1500fb4d5fffeda0c2f964e4028037b357557 # main
-        with:
-          tools: just
+      - name: Set up camas
+        uses: ./.github/actions/setup-camas
 
       - name: Warm cache
         if: ${{ steps.setup.outputs.cache_hit != 'true' }}
-        run: just warm-cache
+        run: |
+          hack/scripts/install-go-tools.sh gotestsum mockery testsplit
+          uv run tasks.py compile
