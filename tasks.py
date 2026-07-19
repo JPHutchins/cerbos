@@ -2,23 +2,26 @@
 # requires-python = ">=3.11"
 # dependencies = ["camas[mcp]>=0.1.27"]
 # ///
-"""Cerbos tasks — the single source of truth for local dev, CI, and agents.
+"""Cerbos tasks — one typed definition for the local dev loop, CI, and agents.
 
 camas replaces the task-runner / CI-orchestration role of the old ``.justfile``:
 the serial ``lint`` chain becomes an inline ``Parallel``, and the hand-written
 GitHub Actions test-split matrix (``strategy.matrix: split: [0..5]``) is emitted
-from ``integration`` here via ``camas integration --github-matrix`` — the shard
-count lives once, in this file.
+from ``integration`` via ``camas integration --github-matrix`` — the shard count
+lives once, in this file.
 
-``hack/tools/testsplit`` stays as a leaf: it balances Go packages across shards by
-historical timing (a greedy bin-pack over ``test-times.json``), which is
-orthogonal to the runner. camas owns the *fan-out*; ``testsplit`` owns the
-intra-shard balancing.
+CI routes ``compile``, ``go_lint``, ``integration``, ``integration_times``,
+``generate``, ``vuln`` and ``helm_lint`` through camas. ``buf`` and ``lint_actions``
+are defined here for the local ``lint``/``ci`` tasks, but CI keeps cerbos's
+``cerbos/actions/{buf,lint-actions}`` composite actions (which also do
+breaking-change detection and SARIF upload), so those two are the local mirror, not
+the CI source of truth.
 
-Tool provisioning is NOT camas's job: it invokes ``go``, ``buf``,
-``golangci-lint``, ``gotestsum``, ``actionlint``, ``modernize``, ``goreleaser``,
-``govulncheck`` and ``testsplit`` from PATH. CI provisions them with
-``cerbos/actions/install-tools`` plus ``hack/scripts/install-go-tools.sh``.
+``hack/tools/testsplit`` stays as a leaf (timing-balanced package bin-packing over
+``test-times.json``, orthogonal to the runner). Tool provisioning is
+``hack/scripts/install-go-tools.sh`` (pinned to ``tools/go.mod``) plus
+``cerbos/actions/install-tools``; camas invokes tools from PATH, it does not install
+them.
 """
 
 from collections.abc import Sequence
@@ -149,6 +152,22 @@ helm_lint = Task(
 	help="validate the Helm chart (helm lint + kubeconform + pluto)",
 )
 
+notice = Task(
+	(
+		"bash",
+		"-c",
+		"set -euo pipefail\n"
+		"go mod download\n"
+		"GOWORK=off go list -m -json all | go-licence-detector -includeIndirect "
+		"-noticeTemplate=hack/notice/templates/NOTICE.txt.tmpl "
+		"-overrides=hack/notice/overrides/overrides.json "
+		"-rules=hack/notice/rules.json "
+		"-noticeOut=NOTICE.txt",
+	),
+	when=("go.mod", "hack/notice"),
+	help="regenerate the committed NOTICE.txt (go-licence-detector)",
+)
+
 
 generate = Sequential(
 	Task(
@@ -238,7 +257,7 @@ ci = Sequential(
 	help="reproduce the CI quality gates locally (compile, then everything in parallel)",
 )
 
-_ = Config(default_task=check, github_task=check, agent=Claude(fix=fix, check=check))
+_ = Config(default_task=check, github_task=ci, agent=Claude(fix=fix, check=check))
 
 if __name__ == "__main__":
 	run_cli(globals())

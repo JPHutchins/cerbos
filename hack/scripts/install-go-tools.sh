@@ -19,6 +19,7 @@ declare -A pkg=(
 	[govulncheck]="golang.org/x/vuln/cmd/govulncheck"
 	[mockery]="github.com/vektra/mockery/v3"
 	[helm-schema]="github.com/dadav/helm-schema/cmd/helm-schema"
+	[go-licence-detector]="go.elastic.co/go-licence-detector"
 )
 declare -A module=(
 	[modernize]="golang.org/x/tools"
@@ -26,10 +27,11 @@ declare -A module=(
 	[govulncheck]="golang.org/x/vuln"
 	[mockery]="github.com/vektra/mockery/v3"
 	[helm-schema]="github.com/dadav/helm-schema"
+	[go-licence-detector]="go.elastic.co/go-licence-detector"
 )
 
 want=("$@")
-[[ ${#want[@]} -eq 0 ]] && want=(modernize gotestsum govulncheck mockery helm-schema testsplit)
+[[ ${#want[@]} -eq 0 ]] && want=(modernize gotestsum govulncheck mockery helm-schema go-licence-detector testsplit)
 
 install_go_tool() {
 	local name="$1" version

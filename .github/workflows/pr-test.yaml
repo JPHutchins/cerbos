@@ -353,8 +353,11 @@ jobs:
         with:
           go-version: "1.26.x"
 
+      - name: Set up camas
+        uses: ./.github/actions/setup-camas
+
       - name: Test Helm chart
-        run: ./deploy/charts/validate.sh
+        run: uv run tasks.py helm_lint
 
   build-npm:
     needs: changes

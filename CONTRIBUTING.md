@@ -120,6 +120,9 @@ Run `uv run tasks.py --list` to list all available tasks. Some of the frequently
 - `uv run tasks.py fix`: Apply the auto-fixers (modernize, golangci-lint --fix, buf format).
 - `uv run tasks.py package`: Build the Cerbos binaries with goreleaser (output to `dist`).
 - `uv run tasks.py generate`: Regenerate proto code, schemas, mocks and docs.
+- `uv run tasks.py notice`: Regenerate the committed `NOTICE.txt`.
+
+To target a single package or a `-run` filter, invoke `gotestsum` directly, e.g. `gotestsum -- -tags=tests,integration -run=TestFoo ./internal/foo`.
 
 Launch a server or the CLIs from source directly, e.g. `go run cmd/cerbos/main.go server --config=hack/dev/conf.secure.yaml` or `go run cmd/cerbosctl/main.go [ARGS]`.
 
