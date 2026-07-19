@@ -34,20 +34,26 @@ jobs:
       - name: Install tools
         uses: cerbos/actions/install-tools@52f1500fb4d5fffeda0c2f964e4028037b357557 # main
         with:
-          tools: |-
-            buf
-            just
+          tools: buf
+
+      - name: Set up camas
+        uses: ./.github/actions/setup-camas
+        with:
+          go-tools: mockery helm-schema gotestsum testsplit
 
       - name: Generate
-        run: just generate
+        run: uv run tasks.py generate
 
       - name: Check repo status
         uses: cerbos/actions/check-repo-status@52f1500fb4d5fffeda0c2f964e4028037b357557 # main
 
       - name: Test
-        run: just test-integration
+        run: uv run tasks.py integration
         env:
           CERBOS_LOG_LEVEL: "debug"
+
+      - name: Merge integration coverage
+        run: '{ echo "mode: atomic"; grep -h -v "^mode:" integration.[0-9]*.cover; } > integration.cover'
 
       - name: Upload integration coverage to Coveralls
         uses: shogo82148/actions-goveralls@9606dbc5ac5cf888a0e9ef901515c3cd516a2790 # v1.11.0

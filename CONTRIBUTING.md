@@ -76,7 +76,7 @@ Please be respectful to maintainers and disclose AI assistance.
 - Add a changelog entry for your change with the following command:
 
     ```console
-    just changelog-entry <TYPE> <DESCRIPTION>
+    go run hack/tools/changelog/main.go add --type=<TYPE> --description=<DESCRIPTION>
     ```
 
    The type of the changelog entry should be one of `breaking`, `chore`, `enhancement`, `feature` or `fix`.
@@ -96,7 +96,7 @@ Please be respectful to maintainers and disclose AI assistance.
 - Add a changelog entry for your change with the following command:
 
     ```console
-    just changelog-entry docs <DESCRIPTION>
+    go run hack/tools/changelog/main.go add --type=docs --description=<DESCRIPTION>
     ```
 
 - Sign-off your commits to provide a [DCO](https://developercertificate.org). You can do this by adding the `-s` flag to your `git commit` command.
@@ -110,15 +110,21 @@ Developing Cerbos
 
 Cerbos is developed using the [Go programming language](https://golang.org). Check the `go` directive in the `go.mod` file to find out the minimum version of Go required.
 
-[Just](https://just.systems/man/en/chapter_4.html) (a better alternative to `make`) is used as the build scripting system and needs to be installed on the system. Other required build tools are automatically downloaded on demand using the versions defined in `tools/go.mod`.
+[camas](https://github.com/JPHutchins/camas) is used as the task runner. Its tasks are defined in `tasks.py` and run with `uv run tasks.py <task>` ([uv](https://docs.astral.sh/uv/) resolves camas from the inline script header; or install camas and run `camas <task>`). Go-based build tools are provisioned by `hack/scripts/install-go-tools.sh`, pinned to the versions in `tools/go.mod`.
 
-Run `just` to list all available build targets. Some of the frequently used targets are:
+Run `uv run tasks.py --list` to list all available tasks. Some of the frequently used ones are:
 
-- `just tests`: Run all tests.
-- `just build`: Compile, test and build the Cerbos binaries and container. Binaries will be output to the `dist` directory. The container name would be `ghcr.io/cerbos/cerbos:<VERSION>-prerelease`.
-- `just pre-commit`: Run tests, lint, and generate code and documentation. Run this before submitting a PR to make sure your code is ready to submit.
-- `just dev-server`: Start a Cerbos server. Alternatively, use `just cerbos [ARGS]` or `just cerbosctl [ARGS]` to launch Cerbos or Cerbosctl from source.
-- `just docs`: Generate docs and preview in browser.
+- `uv run tasks.py tests`: Run the whole test suite.
+- `uv run tasks.py check`: Compile and lint (the fast static gate).
+- `uv run tasks.py ci`: Reproduce the CI quality gates locally (compile, lint, integration tests, helm and vulnerability checks).
+- `uv run tasks.py fix`: Apply the auto-fixers (modernize, golangci-lint --fix, buf format).
+- `uv run tasks.py package`: Build the Cerbos binaries with goreleaser (output to `dist`).
+- `uv run tasks.py generate`: Regenerate proto code, schemas, mocks and docs.
+- `uv run tasks.py notice`: Regenerate the committed `NOTICE.txt`.
+
+To target a single package or a `-run` filter, invoke `gotestsum` directly, e.g. `gotestsum -- -tags=tests,integration -run=TestFoo ./internal/foo`.
+
+Launch a server or the CLIs from source directly, e.g. `go run cmd/cerbos/main.go server --config=hack/dev/conf.secure.yaml` or `go run cmd/cerbosctl/main.go [ARGS]`.
 
 Getting Help
 ------------

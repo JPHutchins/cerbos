@@ -1,0 +1,25 @@
+name: Set up camas
+
+description: Install uv (for `uv run tasks.py`) and optionally provision Go tools
+
+inputs:
+  go-tools:
+    description: Space-separated Go tools to install via hack/scripts/install-go-tools.sh
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+
+    - name: Install Go tools
+      if: ${{ inputs.go-tools != '' }}
+      shell: bash
+      env:
+        GO_TOOLS: ${{ inputs.go-tools }}
+      run: |
+        read -ra tools <<< "$GO_TOOLS"
+        hack/scripts/install-go-tools.sh "${tools[@]}"
+        printf '%s\n' "$(go env GOPATH)/bin" >> "$GITHUB_PATH" # zizmor: ignore[github-env]
